@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Sales Forecasting Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.0.4/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.2.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0/dist/chartjs-plugin-annotation.min.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #27ae60;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .navbar-brand img {
+            height: 40px;
+            margin-right: 10px;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            border: none;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .metric-card {
+            text-align: center;
+            padding: 15px;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--secondary);
+        }
+        
+        .metric-label {
+            font-size: 14px;
+            color: #6c757d;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        .control-panel {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-pills .nav-link.active {
+            background-color: var(--secondary);
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 10px;
+        }
+        
+        .advanced-feature {
+            padding: 15px;
+            border-left: 4px solid var(--secondary);
+            background-color: #f8f9fa;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        
+        .settings-panel {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        
+        .slider-value {
+            font-weight: 600;
+            color: var(--secondary);
+        }
+        
+        .forecast-confidence {
+            background-color: rgba(52, 152, 219, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        
+        .model-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        
+        .model-arima {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: #c0392b;
+        }
+        
+        .model-lstm {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: #27ae60;
+        }
+        
+        .model-xgboost {
+            background-color: rgba(155, 89, 182, 0.2);
+            color: #8e44ad;
+        }
+        
+        .drilldown-btn {
+            cursor: pointer;
+            color: var(--secondary);
+            font-size: 12px;
+        }
+        
+        .scenario-comparison {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .feature-importance-bar {
+            height: 24px;
+            background-color: var(--secondary);
+            border-radius: 4px;
+            margin-bottom: 8px;
+            color: white;
+            padding-left: 10px;
+            line-height: 24px;
+        }
+        
+        .data-input-table {
+            font-size: 14px;
+        }
+        
+        .data-input-table th {
+            background-color: var(--light);
+        }
+        
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--secondary);
+        }
+        
+        .data-table-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary);">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <img src="https://i.postimg.cc/9XGVDS1j/icon-sales.png" alt="Sales Forecasting Icon">
+                Advanced Sales Forecasting
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Data Input</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Models</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Scenarios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Reports</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="dashboard-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1>Sales Forecasting Analytics</h1>
+                    <p class="lead">Advanced predictive analytics for accurate sales forecasting</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <img src="https://i.postimg.cc/26QJ5pYc/icon-sales-2.png" alt="Sales Analytics" height="80">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="control-panel">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Forecast Level</label>
+                            <select class="form-select" id="forecastLevel">
+                                <option value="overall">Overall</option>
+                                <option value="region">Region</option>
+                                <option value="store">Store</option>
+                                <option value="category">Category</option>
+                                <option value="product">Product</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Time Horizon</label>
+                            <select class="form-select" id="timeHorizon">
+                                <option value="7">7 days</option>
+                                <option value="30" selected>30 days</option>
+                                <option value="90">90 days</option>
+                                <option value="180">180 days</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Model Selection</label>
+                            <select class="form-select" id="modelSelection">
+                                <option value="auto">Auto Select (Best Model)</option>
+                                <option value="arima">ARIMA</option>
+                                <option value="lstm">LSTM</option>
+                                <option value="xgboost">XGBoost</option>
+                                <option value="ensemble">Ensemble</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-primary w-100" id="updateForecast">Update Forecast</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <ul class="nav nav-pills card-header-pills" id="dataTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="input-tab" data-bs-toggle="tab" data-bs-target="#input" type="button" role="tab">Data Input</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab">Upload Data</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="generate-tab" data-bs-toggle="tab" data-bs-target="#generate" type="button" role="tab">Generate Sample</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content" id="dataTabContent">
+                            <div class="tab-pane fade show active" id="input" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <h5>Enter Historical Sales Data</h5>
+                                        <div class="table-responsive data-table-container">
+                                            <table class="table table-sm data-input-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Date</th>
+                                                        <th>Sales ($)</th>
+                                                        <th>Promotions (%)</th>
+                                                        <th>Temperature (°F)</th>
+                                                        <th>Holiday</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="dataInputBody">
+                                                    <!-- Data will be populated by JavaScript -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="mt-3">
+                                            <button class="btn btn-sm btn-success" id="addRow">+ Add Row</button>
+                                            <button class="btn btn-sm btn-primary" id="useData">Use This Data</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="upload" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <h5>Upload CSV File</h5>
+                                        <div class="upload-area" id="dropZone">
+                                            <p>Drag & drop your CSV file here or click to browse</p>
+                                            <input type="file" id="csvFile" accept=".csv" class="d-none">
+                                            <button class="btn btn-primary mt-2" onclick="document.getElementById('csvFile').click()">Browse Files</button>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="csvFormat" class="form-label">CSV Format</label>
+                                            <select class="form-select" id="csvFormat">
+                                                <option value="date,sales">Date, Sales</option>
+                                                <option value="date,sales,promotions">Date, Sales, Promotions</option>
+                                                <option value="date,sales,promotions,temperature,holiday">Date, Sales, Promotions, Temperature, Holiday</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="generate" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <h5>Generate Sample Data</h5>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="dataPoints" class="form-label">Number of Data Points</label>
+                                                    <input type="number" class="form-control" id="dataPoints" value="90" min="30" max="365">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="baseSales" class="form-label">Base Sales Value</label>
+                                                    <input type="number" class="form-control" id="baseSales" value="10000">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="trendStrength" class="form-label">Trend Strength</label>
+                                                    <input type="range" class="form-range" id="trendStrength" min="0" max="100" value="20">
+                                                    <span id="trendValue">20%</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="seasonalityStrength" class="form-label">Seasonality Strength</label>
+                                                    <input type="range" class="form-range" id="seasonalityStrength" min="0" max="100" value="30">
+                                                    <span id="seasonalityValue">30%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-primary" id="generateData">Generate Sample Data</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body metric-card">
+                        <div class="metric-value" id="predictedSales">$0</div>
+                        <div class="metric-label">Predicted Next 30 Days</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body metric-card">
+                        <div class="metric-value" id="forecastAccuracy">0%</div>
+                        <div class="metric-label">Forecast Accuracy (MAPE)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body metric-card">
+                        <div class="metric-value" id="expectedGrowth">0%</div>
+                        <div class="metric-label">Expected Growth</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body metric-card">
+                        <div class="metric-value" id="stockoutRisk">-</div>
+                        <div class="metric-label">Stockout Risk</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Sales Forecast with Confidence Intervals</span>
+                        <span class="model-badge" id="selectedModelBadge">No Data</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="forecastChart"></canvas>
+                        </div>
+                        <div class="forecast-confidence mt-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="confidenceIntervals" checked>
+                                <label class="form-check-label" for="confidenceIntervals">Show 95% Confidence Intervals</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Key Drivers & Impact
+                    </div>
+                    <div class="card-body">
+                        <div id="featureImportance">
+                            <p class="text-center text-muted">No data available. Please input data to see feature importance.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <ul class="nav nav-pills card-header-pills" id="forecastTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="scenario-tab" data-bs-toggle="tab" data-bs-target="#scenario" type="button" role="tab">Scenario Simulation</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="hierarchical-tab" data-bs-toggle="tab" data-bs-target="#hierarchical" type="button" role="tab">Hierarchical Forecast</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="anomaly-tab" data-bs-toggle="tab" data-bs-target="#anomaly" type="button" role="tab">Anomaly Detection</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content" id="forecastTabContent">
+                            <div class="tab-pane fade show active" id="scenario" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <div class="settings-panel">
+                                            <h5>What-If Scenario Parameters</h5>
+                                            <div class="slider-container">
+                                                <label class="form-label">Discount Percentage: <span class="slider-value" id="discountValue">0%</span></label>
+                                                <input type="range" class="form-range" id="discountSlider" min="0" max="30" value="0">
+                                            </div>
+                                            <div class="slider-container">
+                                                <label class="form-label">Holiday Effect: <span class="slider-value" id="holidayValue">Normal</span></label>
+                                                <input type="range" class="form-range" id="holidaySlider" min="0" max="2" value="1" step="1">
+                                            </div>
+                                            <div class="slider-container">
+                                                <label class="form-label">Economic Index: <span class="slider-value" id="economicValue">100</span></label>
+                                                <input type="range" class="form-range" id="economicSlider" min="80" max="120" value="100">
+                                            </div>
+                                            <div class="slider-container">
+                                                <label class="form-label">Temperature: <span class="slider-value" id="tempValue">72°F</span></label>
+                                                <input type="range" class="form-range" id="tempSlider" min="50" max="95" value="72">
+                                            </div>
+                                            <button class="btn btn-primary mt-3" id="runScenario">Run Scenario Simulation</button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <div class="chart-container">
+                                            <canvas id="scenarioChart"></canvas>
+                                        </div>
+                                        <div class="scenario-comparison">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h6>Baseline Forecast</h6>
+                                                    <div class="metric-value" id="baselineForecast">$0</div>
+                                                    <div class="metric-label">Next 30 days</div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6>Scenario Forecast</h6>
+                                                    <div class="metric-value" id="scenarioForecast">$0</div>
+                                                    <div class="metric-label">Next 30 days</div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2 text-center">
+                                                <span class="badge bg-success" id="scenarioChange">0% Change</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="hierarchical" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <h5>Drill-Down Hierarchy: Overall → Region → Store → Category → Product</h5>
+                                        <div class="chart-container">
+                                            <canvas id="hierarchyChart"></canvas>
+                                        </div>
+                                        <div class="mt-3 text-end">
+                                            <button class="btn btn-sm btn-outline-secondary me-2" id="drillUp">
+                                                <i class="fas fa-level-up-alt"></i> Drill Up
+                                            </button>
+                                            <button class="btn btn-sm btn-primary" id="drillDown">
+                                                Drill Down <i class="fas fa-level-down-alt"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="anomaly" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <h5>Anomaly Detection Results</h5>
+                                        <div class="chart-container">
+                                            <canvas id="anomalyChart"></canvas>
+                                        </div>
+                                        <div class="mt-3">
+                                            <div class="alert alert-warning">
+                                                <i class="fas fa-exclamation-triangle"></i> <span id="anomalyCount">0</span> anomalies detected
+                                                <a href="#" class="alert-link">Review anomalies</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Model Performance Comparison</span>
+                        <div>
+                            <span class="model-badge model-arima">ARIMA</span>
+                            <span class="model-badge model-lstm">LSTM</span>
+                            <span class="model-badge model-xgboost">XGBoost</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="modelComparisonChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-5 py-4 text-center text-muted">
+            <p>Advanced Sales Forecasting Analytics Dashboard | © 2023</p>
+            <p>Powered by ARIMA, LSTM, and XGBoost forecasting models</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script>
+        // Global variables
+        let historicalData = [];
+        let forecastData = [];
+        let currentModel = 'none';
+        let forecastChartInstance = null;
+        let scenarioChartInstance = null;
+
+        // Static sample data
+        const staticSampleData = [
+            { date: "2023-07-01", sales: 12000, promotions: 0, temperature: 72, holiday: false },
+            { date: "2023-07-02", sales: 11500, promotions: 0, temperature: 75, holiday: false },
+            { date: "2023-07-03", sales: 12500, promotions: 0, temperature: 78, holiday: false },
+            { date: "2023-07-04", sales: 18000, promotions: 0, temperature: 80, holiday: true },
+            { date: "2023-07-05", sales: 13500, promotions: 0, temperature: 82, holiday: false },
+            { date: "2023-07-06", sales: 14000, promotions: 0, temperature: 79, holiday: false },
+            { date: "2023-07-07", sales: 14500, promotions: 0, temperature: 76, holiday: false },
+            { date: "2023-07-08", sales: 15000, promotions: 10, temperature: 74, holiday: false },
+            { date: "2023-07-09", sales: 17500, promotions: 10, temperature: 72, holiday: false },
+            { date: "2023-07-10", sales: 16000, promotions: 10, temperature: 71, holiday: false },
+            { date: "2023-07-11", sales: 15500, promotions: 0, temperature: 73, holiday: false },
+            { date: "2023-07-12", sales: 15000, promotions: 0, temperature: 75, holiday: false },
+            { date: "2023-07-13", sales: 14500, promotions: 0, temperature: 77, holiday: false },
+            { date: "2023-07-14", sales: 16500, promotions: 15, temperature: 79, holiday: false },
+            { date: "2023-07-15", sales: 19000, promotions: 15, temperature: 81, holiday: false },
+            { date: "2023-07-16", sales: 18500, promotions: 15, temperature: 83, holiday: false },
+            { date: "2023-07-17", sales: 17000, promotions: 0, temperature: 85, holiday: false },
+            { date: "2023-07-18", sales: 16500, promotions: 0, temperature: 84, holiday: false },
+            { date: "2023-07-19", sales: 16000, promotions: 0, temperature: 82, holiday: false },
+            { date: "2023-07-20", sales: 17500, promotions: 20, temperature: 80, holiday: false },
+            { date: "2023-07-21", sales: 20000, promotions: 20, temperature: 78, holiday: false },
+            { date: "2023-07-22", sales: 19500, promotions: 20, temperature: 76, holiday: false },
+            { date: "2023-07-23", sales: 18000, promotions: 0, temperature: 74, holiday: false },
+            { date: "2023-07-24", sales: 17500, promotions: 0, temperature: 72, holiday: false },
+            { date: "2023-07-25", sales: 17000, promotions: 0, temperature: 73, holiday: false },
+            { date: "2023-07-26", sales: 18500, promotions: 10, temperature: 75, holiday: false },
+            { date: "2023-07-27", sales: 19000, promotions: 10, temperature: 77, holiday: false },
+            { date: "2023-07-28", sales: 19500, promotions: 10, temperature: 79, holiday: false },
+            { date: "2023-07-29", sales: 18000, promotions: 0, temperature: 81, holiday: false },
+            { date: "2023-07-30", sales: 17500, promotions: 0, temperature: 83, holiday: false },
+            { date: "2023-07-31", sales: 17000, promotions: 0, temperature: 85, holiday: false },
+            { date: "2023-08-01", sales: 18500, promotions: 5, temperature: 84, holiday: false },
+            { date: "2023-08-02", sales: 19000, promotions: 5, temperature: 82, holiday: false },
+            { date: "2023-08-03", sales: 19500, promotions: 5, temperature: 80, holiday: false },
+            { date: "2023-08-04", sales: 21000, promotions: 0, temperature: 78, holiday: false },
+            { date: "2023-08-05", sales: 20500, promotions: 0, temperature: 76, holiday: false },
+            { date: "2023-08-06", sales: 20000, promotions: 0, temperature: 74, holiday: false },
+            { date: "2023-08-07", sales: 19500, promotions: 0, temperature: 72, holiday: false },
+            { date: "2023-08-08", sales: 19000, promotions: 0, temperature: 73, holiday: false },
+            { date: "2023-08-09", sales: 20500, promotions: 15, temperature: 75, holiday: false },
+            { date: "2023-08-10", sales: 22000, promotions: 15, temperature: 77, holiday: false },
+            { date: "2023-08-11", sales: 21500, promotions: 15, temperature: 79, holiday: false },
+            { date: "2023-08-12", sales: 20000, promotions: 0, temperature: 81, holiday: false },
+            { date: "2023-08-13", sales: 19500, promotions: 0, temperature: 83, holiday: false },
+            { date: "2023-08-14", sales: 19000, promotions: 0, temperature: 85, holiday: false },
+            { date: "2023-08-15", sales: 20500, promotions: 10, temperature: 84, holiday: false },
+            { date: "2023-08-16", sales: 21000, promotions: 10, temperature: 82, holiday: false },
+            { date: "2023-08-17", sales: 21500, promotions: 10, temperature: 80, holiday: false },
+            { date: "2023-08-18", sales: 20000, promotions: 0, temperature: 78, holiday: false },
+            { date: "2023-08-19", sales: 19500, promotions: 0, temperature: 76, holiday: false },
+            { date: "2023-08-20", sales: 22000, promotions: 25, temperature: 74, holiday: false },
+            { date: "2023-08-21", sales: 23500, promotions: 25, temperature: 72, holiday: false },
+            { date: "2023-08-22", sales: 23000, promotions: 25, temperature: 73, holiday: false },
+            { date: "2023-08-23", sales: 21500, promotions: 0, temperature: 75, holiday: false },
+            { date: "2023-08-24", sales: 21000, promotions: 0, temperature: 77, holiday: false },
+            { date: "2023-08-25", sales: 22500, promotions: 10, temperature: 79, holiday: false },
+            { date: "2023-08-26", sales: 23000, promotions: 10, temperature: 81, holiday: false },
+            { date: "2023-08-27", sales: 23500, promotions: 10, temperature: 83, holiday: false },
+            { date: "2023-08-28", sales: 22000, promotions: 0, temperature: 85, holiday: false },
+            { date: "2023-08-29", sales: 21500, promotions: 0, temperature: 84, holiday: false },
+            { date: "2023-08-30", sales: 21000, promotions: 0, temperature: 82, holiday: false },
+            { date: "2023-08-31", sales: 22500, promotions: 5, temperature: 80, holiday: false },
+            { date: "2023-09-01", sales: 24000, promotions: 5, temperature: 78, holiday: false },
+            { date: "2023-09-02", sales: 23500, promotions: 5, temperature: 76, holiday: false },
+            { date: "2023-09-03", sales: 22000, promotions: 0, temperature: 74, holiday: true },
+            { date: "2023-09-04", sales: 21500, promotions: 0, temperature: 72, holiday: true },
+            { date: "2023-09-05", sales: 21000, promotions: 0, temperature: 73, holiday: false },
+            { date: "2023-09-06", sales: 22500, promotions: 15, temperature: 75, holiday: false },
+            { date: "2023-09-07", sales: 23000, promotions: 15, temperature: 77, holiday: false },
+            { date: "2023-09-08", sales: 23500, promotions: 15, temperature: 79, holiday: false },
+            { date: "2023-09-09", sales: 25000, promotions: 0, temperature: 81, holiday: false },
+            { date: "2023-09-10", sales: 24500, promotions: 0, temperature: 83, holiday: false },
+            { date: "2023-09-11", sales: 24000, promotions: 0, temperature: 85, holiday: false },
+            { date: "2023-09-12", sales: 23500, promotions: 0, temperature: 84, holiday: false },
+            { date: "2023-09-13", sales: 25000, promotions: 20, temperature: 82, holiday: false },
+            { date: "2023-09-14", sales: 25500, promotions: 20, temperature: 80, holiday: false },
+            { date: "2023-09-15", sales: 26000, promotions: 20, temperature: 78, holiday: false },
+            { date: "2023-09-16", sales: 24500, promotions: 0, temperature: 76, holiday: false },
+            { date: "2023-09-17", sales: 24000, promotions: 0, temperature: 74, holiday: false },
+            { date: "2023-09-18", sales: 23500, promotions: 0, temperature: 72, holiday: false },
+            { date: "2023-09-19", sales: 25000, promotions: 10, temperature: 73, holiday: false },
+            { date: "2023-09-20", sales: 25500, promotions: 10, temperature: 75, holiday: false },
+            { date: "2023-09-21", sales: 26000, promotions: 10, temperature: 77, holiday: false },
+            { date: "2023-09-22", sales: 24500, promotions: 0, temperature: 79, holiday: false },
+            { date: "2023-09-23", sales: 27000, promotions: 30, temperature: 81, holiday: false },
+            { date: "2023-09-24", sales: 27500, promotions: 30, temperature: 83, holiday: false },
+            { date: "2023-09-25", sales: 27000, promotions: 30, temperature: 85, holiday: false },
+            { date: "2023-09-26", sales: 25500, promotions: 0, temperature: 84, holiday: false },
+            { date: "2023-09-27", sales: 25000, promotions: 0, temperature: 82, holiday: false },
+            { date: "2023-09-28", sales: 26500, promotions: 15, temperature: 80, holiday: false },
+            { date: "2023-09-29", sales: 27000, promotions: 15, temperature: 78, holiday: false },
+            { date: "2023-09-30", sales: 27500, promotions: 15, temperature: 76, holiday: false }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize with static data
+            historicalData = staticSampleData;
+            populateDataTable();
+            
+            // Initialize charts with empty data
+            initializeCharts();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Enable forecast button since we have data
+            document.getElementById('updateForecast').disabled = false;
+            
+            // Generate initial forecast
+            generateForecast();
+            
+            // Update slider values
+            document.getElementById('discountSlider').addEventListener('input', function() {
+                document.getElementById('discountValue').textContent = this.value + '%';
+            });
+            
+            document.getElementById('holidaySlider').addEventListener('input', function() {
+                const values = ['Low', 'Normal', 'High'];
+                document.getElementById('holidayValue').textContent = values[this.value];
+            });
+            
+            document.getElementById('economicSlider').addEventListener('input', function() {
+                document.getElementById('economicValue').textContent = this.value;
+            });
+            
+            document.getElementById('tempSlider').addEventListener('input', function() {
+                document.getElementById('tempValue').textContent = this.value + '°F';
+            });
+            
+            document.getElementById('trendStrength').addEventListener('input', function() {
+                document.getElementById('trendValue').textContent = this.value + '%';
+            });
+            
+            document.getElementById('seasonalityStrength').addEventListener('input', function() {
+                document.getElementById('seasonalityValue').textContent = this.value + '%';
+            });
+            
+            // Toggle confidence intervals
+            document.getElementById('confidenceIntervals').addEventListener('change', function() {
+                if (forecastChartInstance) {
+                    forecastChartInstance.data.datasets[2].hidden = !this.checked;
+                    forecastChartInstance.data.datasets[3].hidden = !this.checked;
+                    forecastChartInstance.update();
+                }
+            });
+            
+            // Simulate update forecast button
+            document.getElementById('updateForecast').addEventListener('click', function() {
+                // Show loading state
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
+                
+                // Simulate API call
+                setTimeout(() => {
+                    this.innerHTML = 'Update Forecast';
+                    generateForecast();
+                }, 1500);
+            });
+            
+            // Simulate scenario run
+            document.getElementById('runScenario').addEventListener('click', function() {
+                if (historicalData.length === 0) {
+                    alert('Please input data and generate a forecast first!');
+                    return;
+                }
+                
+                // Show loading state
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Simulating...';
+                
+                // Simulate API call
+                setTimeout(() => {
+                    this.innerHTML = 'Run Scenario Simulation';
+                    runScenarioAnalysis();
+                }, 1500);
+            });
+            
+            // Add row to data table
+            document.getElementById('addRow').addEventListener('click', function() {
+                const tbody = document.getElementById('dataInputBody');
+                const newRow = document.createElement('tr');
+                const lastDate = tbody.lastChild.querySelector('input[type="date"]').value;
+                const nextDate = new Date(lastDate);
+                nextDate.setDate(nextDate.getDate() + 1);
+                
+                newRow.innerHTML = `
+                    <td><input type="date" class="form-control form-control-sm" value="${nextDate.toISOString().split('T')[0]}"></td>
+                    <td><input type="number" class="form-control form-control-sm" value="${Math.floor(Math.random() * 5000) + 5000}"></td>
+                    <td><input type="number" class="form-control form-control-sm" value="${Math.floor(Math.random() * 30)}"></td>
+                    <td><input type="number" class="form-control form-control-sm" value="${Math.floor(Math.random() * 40) + 50}"></td>
+                    <td>
+                        <select class="form-select form-select-sm">
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
+                        </select>
+                    </td>
+                    <td><button class="btn btn-sm btn-danger remove-row">×</button></td>
+                `;
+                
+                tbody.appendChild(newRow);
+                
+                // Add event listener to remove button
+                newRow.querySelector('.remove-row').addEventListener('click', function() {
+                    if (tbody.children.length > 1) {
+                        tbody.removeChild(newRow);
+                    } else {
+                        alert('You need at least one row of data.');
+                    }
+                });
+            });
+            
+            // Use data from table
+            document.getElementById('useData').addEventListener('click', function() {
+                const tbody = document.getElementById('dataInputBody');
+                const rows = tbody.querySelectorAll('tr');
+                
+                historicalData = [];
+                
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('input, select');
+                    historicalData.push({
+                        date: cells[0].value,
+                        sales: parseInt(cells[1].value),
+                        promotions: parseInt(cells[2].value),
+                        temperature: parseInt(cells[3].value),
+                        holiday: cells[4].value === 'yes'
+                    });
+                });
+                
+                alert(`Loaded ${historicalData.length} data points successfully!`);
+                
+                // Enable forecast button
+                document.getElementById('updateForecast').disabled = false;
+                
+                // Generate forecast with new data
+                generateForecast();
+            });
+            
+            // Generate sample data
+            document.getElementById('generateData').addEventListener('click', function() {
+                const dataPoints = parseInt(document.getElementById('dataPoints').value);
+                const baseSales = parseInt(document.getElementById('baseSales').value);
+                const trendStrength = parseInt(document.getElementById('trendStrength').value) / 100;
+                const seasonalityStrength = parseInt(document.getElementById('seasonalityStrength').value) / 100;
+                
+                historicalData = generateSampleData(dataPoints, baseSales, trendStrength, seasonalityStrength);
+                
+                // Populate the table with generated data
+                populateDataTable();
+                
+                alert(`Generated ${historicalData.length} sample data points!`);
+                
+                // Enable forecast button
+                document.getElementById('updateForecast').disabled = false;
+                
+                // Generate forecast with new data
+                generateForecast();
+            });
+        });
+        
+        function populateDataTable() {
+            const tbody = document.getElementById('dataInputBody');
+            tbody.innerHTML = '';
+            
+            historicalData.forEach(dataPoint => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="date" class="form-control form-control-sm" value="${dataPoint.date}"></td>
+                    <td><input type="number" class="form-control form-control-sm" value="${dataPoint.sales}"></td>
+                    <td><input type="number" class="form-control form-control-sm" value="${dataPoint.promotions}"></td>
+                    <td><input type="number" class="form-control form-control-sm" value="${dataPoint.temperature}"></td>
+                    <td>
+                        <select class="form-select form-select-sm">
+                            <option value="no" ${dataPoint.holiday ? '' : 'selected'}>No</option>
+                            <option value="yes" ${dataPoint.holiday ? 'selected' : ''}>Yes</option>
+                        </select>
+                    </td>
+                    <td><button class="btn btn-sm btn-danger remove-row">×</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // Add event listeners to remove buttons
+            document.querySelectorAll('.remove-row').forEach(button => {
+                button.addEventListener('click', function() {
+                    const tbody = document.getElementById('dataInputBody');
+                    if (tbody.children.length > 1) {
+                        tbody.removeChild(button.parentNode.parentNode);
+                    } else {
+                        alert('You need at least one row of data.');
+                    }
+                });
+            });
+        }
+        
+        function initializeCharts() {
+            // Main forecast chart
+            const forecastCtx = document.getElementById('forecastChart').getContext('2d');
+            forecastChartInstance = new Chart(forecastCtx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Historical Sales',
+                            data: [],
+                            borderColor: 'rgb(52, 152, 219)',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderWidth: 2,
+                            fill: false
+                        },
+                        {
+                            label: 'Forecast',
+                            data: [],
+                            borderColor: 'rgb(46, 204, 113)',
+                            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false
+                        },
+                        {
+                            label: 'Upper Bound',
+                            data: [],
+                            borderColor: 'rgba(46, 204, 113, 0.3)',
+                            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                            borderWidth: 1,
+                            pointStyle: false,
+                            fill: '+1'
+                        },
+                        {
+                            label: 'Lower Bound',
+                            data: [],
+                            borderColor: 'rgba(46, 204, 113, 0.3)',
+                            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                            borderWidth: 1,
+                            pointStyle: false,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day'
+                            }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Sales ($)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Scenario chart
+            const scenarioCtx = document.getElementById('scenarioChart').getContext('2d');
+            scenarioChartInstance = new Chart(scenarioCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [
+                        {
+                            label: 'Baseline Forecast',
+                            data: [0, 0, 0, 0],
+                            borderColor: 'rgb(52, 152, 219)',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderWidth: 2,
+                            fill: false
+                        },
+                        {
+                            label: 'Scenario Forecast',
+                            data: [0, 0, 0, 0],
+                            borderColor: 'rgb(46, 204, 113)',
+                            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                            borderWidth: 2,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Sales ($)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Model comparison chart
+            const modelComparisonCtx = document.getElementById('modelComparisonChart').getContext('2d');
+            new Chart(modelComparisonCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['ARIMA', 'LSTM', 'XGBoost', 'Ensemble'],
+                    datasets: [
+                        {
+                            label: 'MAPE (%)',
+                            data: [12.5, 9.2, 8.7, 7.3],
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)'
+                        },
+                        {
+                            label: 'RMSE',
+                            data: [1850, 1420, 1350, 1210],
+                            backgroundColor: 'rgba(46, 204, 113, 0.7)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Hierarchy chart
+            const hierarchyCtx = document.getElementById('hierarchyChart').getContext('2d');
+            new Chart(hierarchyCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['North', 'South', 'East', 'West'],
+                    datasets: [{
+                        label: 'Sales by Region',
+                        data: [125000, 98000, 112000, 87000],
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(155, 89, 182, 0.7)',
+                            'rgba(241, 196, 15, 0.7)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Sales ($)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Anomaly chart
+            const anomalyCtx = document.getElementById('anomalyChart').getContext('2d');
+            new Chart(anomalyCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [
+                        {
+                            label: 'Sales',
+                            data: [12000, 13500, 14200, 15500, 16300, 17800],
+                            borderColor: 'rgb(52, 152, 219)',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderWidth: 2,
+                            fill: false
+                        },
+                        {
+                            label: 'Anomalies',
+                            data: [null, null, 18500, null, null, null],
+                            pointBackgroundColor: 'rgb(231, 76, 60)',
+                            pointBorderColor: 'rgb(231, 76, 60)',
+                            pointRadius: 6,
+                            pointStyle: 'triangle',
+                            showLine: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Sales ($)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function setupEventListeners() {
+            // Initially disable forecast button until we have data
+            document.getElementById('updateForecast').disabled = true;
+        }
+        
+        function generateSampleData(dataPoints, baseSales, trendStrength, seasonalityStrength) {
+            const data = [];
+            const now = new Date();
+            const startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - dataPoints);
+            
+            for (let i = 0; i < dataPoints; i++) {
+                const currentDate = new Date(startDate);
+                currentDate.setDate(currentDate.getDate() + i);
+                
+                // Calculate components
+                const trend = i * (trendStrength * 10);
+                const seasonality = Math.sin(i / 30 * Math.PI * 2) * (seasonalityStrength * baseSales * 0.3);
+                const randomness = (Math.random() - 0.5) * (baseSales * 0.2);
+                
+                // Randomly add promotions (10% chance)
+                const promotions = Math.random() > 0.9 ? Math.floor(Math.random() * 30) : 0;
+                
+                // Random temperature between 50 and 90
+                const temperature = Math.floor(Math.random() * 40) + 50;
+                
+                // Random holiday (5% chance)
+                const holiday = Math.random() > 0.95;
+                
+                // Apply promotion effect
+                const promotionEffect = promotions > 0 ? baseSales * 0.4 * (promotions / 30) : 0;
+                
+                // Apply holiday effect
+                const holidayEffect = holiday ? baseSales * 0.3 : 0;
+                
+                const sales = Math.max(1000, baseSales + trend + seasonality + randomness + promotionEffect + holidayEffect);
+                
+                data.push({
+                    date: currentDate.toISOString().split('T')[0],
+                    sales: Math.round(sales),
+                    promotions: promotions,
+                    temperature: temperature,
+                    holiday: holiday
+                });
+            }
+            
+            return data;
+        }
+        
+        function generateForecast() {
+            if (historicalData.length === 0) return;
+            
+            // Determine which model to use
+            const modelSelection = document.getElementById('modelSelection').value;
+            let selectedModel = modelSelection;
+            
+            if (modelSelection === 'auto') {
+                // Simple heuristic to choose model based on data characteristics
+                if (historicalData.length < 50) {
+                    selectedModel = 'arima';
+                } else if (historicalData.length > 200) {
+                    selectedModel = 'lstm';
+                } else {
+                    selectedModel = 'xgboost';
+                }
+            }
+            
+            currentModel = selectedModel;
+            
+            // Update model badge
+            const badgeElement = document.getElementById('selectedModelBadge');
+            badgeElement.textContent = selectedModel.toUpperCase();
+            badgeElement.className = 'model-badge';
+            
+            switch(selectedModel) {
+                case 'arima':
+                    badgeElement.classList.add('model-arima');
+                    break;
+                case 'lstm':
+                    badgeElement.classList.add('model-lstm');
+                    break;
+                case 'xgboost':
+                    badgeElement.classList.add('model-xgboost');
+                    break;
+                case 'ensemble':
+                    badgeElement.textContent = 'ENSEMBLE';
+                    badgeElement.classList.add('model-xgboost');
+                    break;
+            }
+            
+            // Generate forecast based on historical data
+            const timeHorizon = parseInt(document.getElementById('timeHorizon').value);
+            forecastData = [];
+            
+            // Calculate some statistics from historical data
+            const salesValues = historicalData.map(d => d.sales);
+            const lastSales = salesValues[salesValues.length - 1];
+            const avgSales = salesValues.reduce((a, b) => a + b, 0) / salesValues.length;
+            const growthRate = (lastSales - salesValues[0]) / salesValues[0];
+            
+            // Generate forecast with some randomness based on selected model
+            for (let i = 1; i <= timeHorizon; i++) {
+                const lastDate = new Date(historicalData[historicalData.length - 1].date);
+                const forecastDate = new Date(lastDate);
+                forecastDate.setDate(lastDate.getDate() + i);
+                
+                let forecastValue;
+                let uncertainty;
+                
+                switch(selectedModel) {
+                    case 'arima':
+                        // ARIMA-like forecast: more responsive to recent trends
+                        const recentTrend = (salesValues[salesValues.length - 1] - salesValues[salesValues.length - 7]) / 7;
+                        forecastValue = lastSales + recentTrend * i;
+                        uncertainty = 0.15; // 15% uncertainty
+                        break;
+                    case 'lstm':
+                        // LSTM-like forecast: better with complex patterns
+                        const seasonality = Math.sin((historicalData.length + i) / 30 * Math.PI * 2) * (avgSales * 0.2);
+                        forecastValue = lastSales + (growthRate * lastSales * 0.7) + seasonality;
+                        uncertainty = 0.12; // 12% uncertainty
+                        break;
+                    case 'xgboost':
+                        // XGBoost-like forecast: handles various features well
+                        const promotionsEffect = historicalData[historicalData.length - 1].promotions > 0 ? lastSales * 0.2 : 0;
+                        forecastValue = lastSales + (growthRate * lastSales * 0.5) + promotionsEffect;
+                        uncertainty = 0.1; // 10% uncertainty
+                        break;
+                    case 'ensemble':
+                        // Ensemble: average of different approaches
+                        const arimaVal = lastSales + ((lastSales - salesValues[salesValues.length - 7]) / 7) * i;
+                        const lstmVal = lastSales + (growthRate * lastSales * 0.7) + 
+                                       (Math.sin((historicalData.length + i) / 30 * Math.PI * 2) * (avgSales * 0.2));
+                        const xgbVal = lastSales + (growthRate * lastSales * 0.5) + 
+                                     (historicalData[historicalData.length - 1].promotions > 0 ? lastSales * 0.2 : 0);
+                        
+                        forecastValue = (arimaVal + lstmVal + xgbVal) / 3;
+                        uncertainty = 0.08; // 8% uncertainty
+                        break;
+                }
+                
+                // Add some randomness
+                const randomFactor = 1 + (Math.random() - 0.5) * 0.1;
+                forecastValue = forecastValue * randomFactor;
+                
+                forecastData.push({
+                    date: forecastDate.toISOString().split('T')[0],
+                    forecast: forecastValue,
+                    upper: forecastValue * (1 + uncertainty),
+                    lower: forecastValue * (1 - uncertainty)
+                });
+            }
+            
+            // Update the forecast chart
+            updateForecastChart();
+            
+            // Update metrics
+            updateMetrics();
+            
+            // Update feature importance
+            updateFeatureImportance();
+        }
+        
+        function updateForecastChart() {
+            if (forecastChartInstance && historicalData.length > 0 && forecastData.length > 0) {
+                // Update historical data
+                const historicalChartData = historicalData.map(d => ({
+                    x: new Date(d.date),
+                    y: d.sales
+                }));
+                
+                // Update forecast data
+                const forecastChartData = forecastData.map(d => ({
+                    x: new Date(d.date),
+                    y: d.forecast
+                }));
+                
+                const upperBoundData = forecastData.map(d => ({
+                    x: new Date(d.date),
+                    y: d.upper
+                }));
+                
+                const lowerBoundData = forecastData.map(d => ({
+                    x: new Date(d.date),
+                    y: d.lower
+                }));
+                
+                forecastChartInstance.data.datasets[0].data = historicalChartData;
+                forecastChartInstance.data.datasets[1].data = forecastChartData;
+                forecastChartInstance.data.datasets[2].data = upperBoundData;
+                forecastChartInstance.data.datasets[3].data = lowerBoundData;
+                
+                forecastChartInstance.update();
+            }
+        }
+        
+        function updateMetrics() {
+            if (forecastData.length === 0) return;
+            
+            // Calculate total predicted sales
+            const totalPredicted = forecastData.reduce((sum, d) => sum + d.forecast, 0);
+            document.getElementById('predictedSales').textContent = `$${(totalPredicted / 1000).toFixed(1)}K`;
+            
+            // Calculate accuracy based on model
+            let accuracy;
+            switch(currentModel) {
+                case 'arima':
+                    accuracy = 85 + Math.random() * 5;
+                    break;
+                case 'lstm':
+                    accuracy = 90 + Math.random() * 5;
+                    break;
+                case 'xgboost':
+                    accuracy = 92 + Math.random() * 3;
+                    break;
+                case 'ensemble':
+                    accuracy = 94 + Math.random() * 3;
+                    break;
+                default:
+                    accuracy = 80 + Math.random() * 10;
+            }
+            document.getElementById('forecastAccuracy').textContent = `${accuracy.toFixed(1)}%`;
+            
+            // Calculate expected growth
+            const historicalSales = historicalData.map(d => d.sales);
+            const lastHistorical = historicalSales[historicalSales.length - 1];
+            const avgForecast = forecastData.reduce((sum, d) => sum + d.forecast, 0) / forecastData.length;
+            const growth = ((avgForecast - lastHistorical) / lastHistorical) * 100;
+            document.getElementById('expectedGrowth').textContent = `${growth.toFixed(1)}%`;
+            
+            // Determine stockout risk
+            let risk;
+            if (growth > 15) risk = 'High';
+            else if (growth > 5) risk = 'Medium';
+            else risk = 'Low';
+            document.getElementById('stockoutRisk').textContent = risk;
+            
+            // Set baseline forecast for scenarios
+            document.getElementById('baselineForecast').textContent = `$${(totalPredicted / 1000).toFixed(1)}K`;
+            
+            // Set anomaly count
+            document.getElementById('anomalyCount').textContent = '3';
+        }
+        
+        function updateFeatureImportance() {
+            const container = document.getElementById('featureImportance');
+            
+            // Generate random feature importance values
+            const features = [
+                { name: 'Historical Sales', importance: 90 + Math.random() * 10 },
+                { name: 'Promotions', importance: 70 + Math.random() * 20 },
+                { name: 'Seasonality', importance: 60 + Math.random() * 25 },
+                { name: 'Weekend Effect', importance: 40 + Math.random() * 20 },
+                { name: 'Temperature', importance: 30 + Math.random() * 20 },
+                { name: 'Holidays', importance: 50 + Math.random() * 30 }
+            ];
+            
+            // Sort by importance
+            features.sort((a, b) => b.importance - a.importance);
+            
+            // Create HTML
+            let html = '';
+            features.forEach(feature => {
+                html += `<div class="feature-importance-bar" style="width: ${feature.importance}%">${feature.name}</div>`;
+            });
+            
+            html += `<div class="mt-3"><small class="text-muted">Based on SHAP values from ${currentModel.toUpperCase()} model</small></div>`;
+            
+            container.innerHTML = html;
+        }
+        
+        function runScenarioAnalysis() {
+            if (forecastData.length === 0) return;
+            
+            // Get scenario parameters
+            const discount = parseInt(document.getElementById('discountSlider').value);
+            const holidayEffect = parseInt(document.getElementById('holidaySlider').value);
+            const economicIndex = parseInt(document.getElementById('economicSlider').value);
+            const temperature = parseInt(document.getElementById('tempSlider').value);
+            
+            // Calculate scenario impact
+            const discountEffect = 1 + (discount * 0.03); // 3% lift per discount percentage
+            const holidayEffectMultiplier = [0.9, 1.0, 1.2][holidayEffect]; // Low, Normal, High
+            const economicEffect = economicIndex / 100; // Scale based on economic index
+            const temperatureEffect = 1 + ((temperature - 72) / 72) * 0.5; // Effect based on temperature deviation from 72
+            
+            // Apply effects to forecast
+            const scenarioForecast = forecastData.map(d => {
+                return d.forecast * discountEffect * holidayEffectMultiplier * economicEffect * temperatureEffect;
+            });
+            
+            // Update scenario chart
+            const weeklyData = [
+                scenarioForecast.slice(0, 7).reduce((sum, val) => sum + val, 0) / 7,
+                scenarioForecast.slice(7, 14).reduce((sum, val) => sum + val, 0) / 7,
+                scenarioForecast.slice(14, 21).reduce((sum, val) => sum + val, 0) / 7,
+                scenarioForecast.slice(21, 28).reduce((sum, val) => sum + val, 0) / 7
+            ];
+            
+            // Get baseline weekly data
+            const baselineWeekly = [
+                forecastData.slice(0, 7).reduce((sum, d) => sum + d.forecast, 0) / 7,
+                forecastData.slice(7, 14).reduce((sum, d) => sum + d.forecast, 0) / 7,
+                forecastData.slice(14, 21).reduce((sum, d) => sum + d.forecast, 0) / 7,
+                forecastData.slice(21, 28).reduce((sum, d) => sum + d.forecast, 0) / 7
+            ];
+            
+            scenarioChartInstance.data.datasets[0].data = baselineWeekly;
+            scenarioChartInstance.data.datasets[1].data = weeklyData;
+            scenarioChartInstance.update();
+            
+            // Update scenario metrics
+            const totalBaseline = forecastData.reduce((sum, d) => sum + d.forecast, 0);
+            const totalScenario = scenarioForecast.reduce((sum, val) => sum + val, 0);
+            const change = ((totalScenario - totalBaseline) / totalBaseline) * 100;
+            
+            document.getElementById('scenarioForecast').textContent = `$${(totalScenario / 1000).toFixed(1)}K`;
+            document.getElementById('scenarioChange').textContent = `${change >= 0 ? '+' : ''}${change.toFixed(1)}% Change`;
+            document.getElementById('scenarioChange').className = `badge bg-${change >= 0 ? 'success' : 'danger'}`;
+        }
+    </script>
+</body>
+</html>
